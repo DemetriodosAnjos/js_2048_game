@@ -5,7 +5,7 @@ class Game {
     this._size = size;
     this._score = 0;
     this._board = this._createEmptyBoard();
-    this._status = 'ready'; // ou 'playing', 'win', 'lose'
+    this._status = 'idle';
   }
 
   start() {
@@ -17,7 +17,8 @@ class Game {
   }
 
   getState() {
-    return this._board;
+    // Retorna uma cópia profunda do tabuleiro
+    return this._board.map((row) => [...row]);
   }
 
   getScore() {
@@ -136,6 +137,7 @@ class Game {
     }
   }
 
+  // moveUp
   moveUp() {
     if (this._status !== 'playing') {
       return;
@@ -143,14 +145,29 @@ class Game {
 
     const oldBoard = this._board.map((row) => [...row]);
 
-    this._board = this._rotateClockwise(this._board);
+    // Transpõe a matriz para que as colunas se tornem linhas
+    const transposedBoard = this._createEmptyBoard();
 
-    this._board.forEach((row, rowIndex) => {
-      this._board[rowIndex] = this._moveAndMergeLeft(row);
+    for (let r = 0; r < this._size; r++) {
+      for (let c = 0; c < this._size; c++) {
+        transposedBoard[r][c] = this._board[c][r];
+      }
+    }
+
+    // Aplica o movimento para a esquerda nas novas "linhas"
+    transposedBoard.forEach((row, rowIndex) => {
+      transposedBoard[rowIndex] = this._moveAndMergeLeft(row);
     });
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
+
+    // Transpõe a matriz de volta
+    const newBoard = this._createEmptyBoard();
+
+    for (let r = 0; r < this._size; r++) {
+      for (let c = 0; c < this._size; c++) {
+        newBoard[r][c] = transposedBoard[c][r];
+      }
+    }
+    this._board = newBoard;
 
     if (this._didBoardChange(oldBoard)) {
       this._addRandomTile();
@@ -158,6 +175,7 @@ class Game {
     }
   }
 
+  // moveDown
   moveDown() {
     if (this._status !== 'playing') {
       return;
@@ -165,14 +183,31 @@ class Game {
 
     const oldBoard = this._board.map((row) => [...row]);
 
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
+    // Transpõe a matriz
+    const transposedBoard = this._createEmptyBoard();
 
-    this._board.forEach((row, rowIndex) => {
-      this._board[rowIndex] = this._moveAndMergeLeft(row);
+    for (let r = 0; r < this._size; r++) {
+      for (let c = 0; c < this._size; c++) {
+        transposedBoard[r][c] = this._board[c][r];
+      }
+    }
+
+    // Inverte as linhas para simular o movimento para baixo
+    transposedBoard.forEach((row, rowIndex) => {
+      transposedBoard[rowIndex] = this._moveAndMergeLeft(
+        row.reverse(),
+      ).reverse();
     });
-    this._board = this._rotateClockwise(this._board);
+
+    // Transpõe a matriz de volta
+    const newBoard = this._createEmptyBoard();
+
+    for (let r = 0; r < this._size; r++) {
+      for (let c = 0; c < this._size; c++) {
+        newBoard[r][c] = transposedBoard[c][r];
+      }
+    }
+    this._board = newBoard;
 
     if (this._didBoardChange(oldBoard)) {
       this._addRandomTile();

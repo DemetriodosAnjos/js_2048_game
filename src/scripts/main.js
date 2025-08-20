@@ -35,7 +35,7 @@ function updateUI() {
 
     if (cellValue > 0) {
       // Adiciona a classe e o valor se a célula não estiver vazia
-      cell.classList.add(`tile-${cellValue}`);
+      cell.classList.add(`field-cell--${cellValue}`);
       cell.textContent = cellValue;
     } else {
       // Limpa o conteúdo se a célula estiver vazia
