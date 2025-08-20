@@ -1,17 +1,25 @@
 'use strict';
 
-class Game {
-  constructor(size = 4) {
-    this._size = size;
+export default class Game {
+  // Alteração: Removendo o parâmetro 'size'
+  constructor(initialState = null) {
+    this._size = 4; // Agora o tamanho é fixo em 4
     this._score = 0;
-    this._board = this._createEmptyBoard();
-    this._status = 'idle';
+    this._status = 'in progress'; // Certifique-se de que a string está correta
+
+    if (initialState) {
+      this._initialState = initialState.map((row) => [...row]);
+      this._board = initialState.map((row) => [...row]);
+    } else {
+      this._initialState = null;
+      this._board = this._createEmptyBoard();
+    }
   }
 
   start() {
     this._board = this._createEmptyBoard();
     this._score = 0;
-    this._status = 'playing';
+    this._status = 'in progress';
     this._addRandomTile();
     this._addRandomTile();
   }
@@ -29,8 +37,22 @@ class Game {
     return this._status;
   }
 
+  // Alteração no método restart()
   restart() {
-    this.start();
+    this._score = 0;
+    this._status = 'in progress';
+
+    if (this._initialState) {
+      // Restaura o tabuleiro para o estado inicial
+      this._board = this._initialState.map((row) => [...row]);
+    } else {
+      // Se não há estado inicial, começa um novo jogo
+      this._board = this._createEmptyBoard();
+      this._addRandomTile();
+      this._addRandomTile();
+    }
+
+    this._checkWinOrLose();
   }
 
   _createEmptyBoard() {
@@ -58,13 +80,13 @@ class Game {
 
   _checkWinOrLose() {
     if (this._board.some((row) => row.some((cell) => cell === 2048))) {
-      this._status = 'win';
+      this._status = 'won';
 
       return;
     }
 
     if (this._isGameOver()) {
-      this._status = 'lose';
+      this._status = 'game over';
     }
   }
 
@@ -98,7 +120,7 @@ class Game {
 
   // Métodos de movimento público
   moveLeft() {
-    if (this._status !== 'playing') {
+    if (this._status !== 'in progress') {
       return;
     }
 
@@ -115,23 +137,17 @@ class Game {
   }
 
   moveRight() {
-    if (this._status !== 'playing') {
+    if (this._status !== 'in progress') {
       return;
     }
 
     const oldBoard = this._board.map((row) => [...row]);
 
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
-
     this._board.forEach((row, rowIndex) => {
-      this._board[rowIndex] = this._moveAndMergeLeft(row);
+      this._board[rowIndex] = this._moveAndMergeLeft(row.reverse()).reverse();
     });
-    this._board = this._rotateClockwise(this._board);
-    this._board = this._rotateClockwise(this._board);
 
     if (this._didBoardChange(oldBoard)) {
-      // E é usado aqui
       this._addRandomTile();
       this._checkWinOrLose();
     }
@@ -139,7 +155,7 @@ class Game {
 
   // moveUp
   moveUp() {
-    if (this._status !== 'playing') {
+    if (this._status !== 'in progress') {
       return;
     }
 
@@ -177,7 +193,7 @@ class Game {
 
   // moveDown
   moveDown() {
-    if (this._status !== 'playing') {
+    if (this._status !== 'in progress') {
       return;
     }
 
@@ -230,34 +246,24 @@ class Game {
 
   _moveAndMergeLeft(row) {
     const newRow = row.filter((cell) => cell !== 0);
+    const mergedRow = [];
 
-    for (let i = 0; i < newRow.length - 1; i++) {
+    for (let i = 0; i < newRow.length; i++) {
       if (newRow[i] === newRow[i + 1]) {
-        newRow[i] *= 2;
-        this._score += newRow[i];
-        newRow.splice(i + 1, 1);
-        newRow.push(0);
+        const mergedValue = newRow[i] * 2;
+
+        this._score += mergedValue;
+        mergedRow.push(mergedValue);
+        i++; // Pula a próxima célula, já que ela foi mesclada
+      } else {
+        mergedRow.push(newRow[i]);
       }
     }
 
-    while (newRow.length < this._size) {
-      newRow.push(0);
+    while (mergedRow.length < this._size) {
+      mergedRow.push(0);
     }
 
-    return newRow;
-  }
-
-  _rotateClockwise(board) {
-    const newBoard = this._createEmptyBoard();
-
-    for (let r = 0; r < this._size; r++) {
-      for (let c = 0; c < this._size; c++) {
-        newBoard[c][this._size - 1 - r] = board[r][c];
-      }
-    }
-
-    return newBoard;
+    return mergedRow;
   }
 }
-
-module.exports = Game;

@@ -17,28 +17,24 @@ function updateUI() {
   const boardState = game.getState();
   const score = game.getScore();
 
-  // Atualiza a pontuação
   scoreElement.textContent = score;
 
-  // Encontra todas as células do tabuleiro
   const cells = document.querySelectorAll('.game-field .field-cell');
 
-  // Itera sobre as células e atualiza o conteúdo com base no estado do jogo
   cells.forEach((cell, index) => {
-    // Calcula a linha e coluna com base no índice
     const rowIndex = Math.floor(index / 4);
     const colIndex = index % 4;
     const cellValue = boardState[rowIndex][colIndex];
 
-    // Remove classes de tile anteriores para garantir a limpeza
+    // Limpa a classe de valor anterior
+    // Isso é crucial para que o tile mude de cor e estilo corretamente
     cell.className = 'field-cell';
 
     if (cellValue > 0) {
-      // Adiciona a classe e o valor se a célula não estiver vazia
+      // Usa a classe field-cell--VALOR, como sugerido no feedback
       cell.classList.add(`field-cell--${cellValue}`);
       cell.textContent = cellValue;
     } else {
-      // Limpa o conteúdo se a célula estiver vazia
       cell.textContent = '';
     }
   });
@@ -46,11 +42,11 @@ function updateUI() {
   // Mostra ou esconde as mensagens de status do jogo
   const gameStatus = game.getStatus();
 
-  if (gameStatus === 'lose') {
+  if (gameStatus === 'game over') {
     messageLoseElement.classList.remove('hidden');
     startButton.classList.add('hidden');
     restartButton.classList.remove('hidden');
-  } else if (gameStatus === 'win') {
+  } else if (gameStatus === 'won') {
     messageWinElement.classList.remove('hidden');
     startButton.classList.add('hidden');
     restartButton.classList.remove('hidden');
@@ -63,7 +59,7 @@ function updateUI() {
 // Lida com o pressionar de teclas do usuário
 function handleKeyDown(e) {
   // Ignora o movimento se o jogo não estiver no status 'playing'
-  if (game.getStatus() !== 'playing') {
+  if (game.getStatus() !== 'in progress') {
     return;
   }
 
@@ -113,7 +109,3 @@ function handleRestart() {
 document.addEventListener('keydown', handleKeyDown);
 startButton.addEventListener('click', handleStartGame);
 restartButton.addEventListener('click', handleRestart);
-
-// A função init() não é mais necessária, pois o jogo
-// agora espera o clique no botão de Start
-// para iniciar.
